@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Topaz Font Finder</string>
+    <string name="action_settings">Settings</string>
+    <string name="description">Topaz Font Finder will determin which font is used on an image you upload.</string>
+    <string name="upload_image">Upload image.</string>
+    <string name="title_activity_edit_image">EditImage</string>
+    <string name="title_activity_character_list">characterList</string>
+    <string name="img">img</string>
+
+</resources>
