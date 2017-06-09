@@ -15,19 +15,21 @@
 
     <FrameLayout
         android:layout_width="match_parent"
+        android:background="@color/colorPrimaryDark"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_height="60dp">
+        android:layout_marginTop="12dp"
+        android:layout_height="70dp"
+        tools:ignore="UselessParent">
 
         <ImageView
             app:srcCompat="@drawable/r_char"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:id="@+id/imageView4"
             android:layout_width="40dp"
-            android:layout_height="56dp" />
+            android:layout_height="56dp"
+            android:layout_marginTop="8dp"
+            tools:ignore="ContentDescription" />
 
         <EditText
             android:layout_height="50dp"
@@ -36,16 +38,14 @@
             android:ems="10"
             android:id="@+id/editText"
             android:background="@android:drawable/editbox_dropdown_light_frame"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
             android:layout_width="50dp"
             android:textSize="36sp"
             android:textAlignment="center"
             android:layout_marginStart="300dp"
 
             android:layout_marginLeft="300dp"
-            android:layout_marginTop="5dp" />
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText" />
     </FrameLayout>
 
 </RelativeLayout>

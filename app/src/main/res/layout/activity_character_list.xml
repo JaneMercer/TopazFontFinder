@@ -24,7 +24,7 @@
 
     <ImageView
         android:layout_width="wrap_content"
-        android:layout_height="185dp"
+        android:layout_height="147dp"
         app:srcCompat="@drawable/edited_image"
         android:id="@+id/imageView3"
         android:layout_marginTop="60dp"
@@ -32,16 +32,6 @@
         android:elevation="1dp"
         tools:ignore="UnusedAttribute" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/activity_vertical_margin"
-
-        app:fabSize="normal"
-        app:srcCompat="@android:drawable/ic_menu_send"
-        app:backgroundTint="@android:color/holo_blue_dark" />
     <!--
     <ListView
         android:layout_width="match_parent"
@@ -52,9 +42,32 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="245dp" /> -->
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/activity_vertical_margin"
+
+        app:fabSize="normal"
+        app:srcCompat="@drawable/next"
+        app:backgroundTint="@android:color/holo_blue_dark" />
+
     <include layout="@layout/content_character_list"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_marginTop="245dp" />
+        android:layout_marginTop="285dp" />
+
+    <TextView
+        android:text="@string/swipe_right_to_delete_false_character_change_the_character_if_it_is_wrong"
+
+        android:layout_marginTop="225dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView3"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="22sp"
+        android:textAlignment="center" />
+
 
 </android.support.design.widget.CoordinatorLayout>

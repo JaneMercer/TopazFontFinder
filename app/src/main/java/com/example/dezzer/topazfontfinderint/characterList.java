@@ -28,5 +28,10 @@ public class characterList extends AppCompatActivity {
             }
         });
     }
+    public void go_to_actv ( View view) {
+        Intent intent = new Intent(this, LoadingAct.class);
+        startActivity(intent);
+    }
+
 
 }

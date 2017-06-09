@@ -6,5 +6,7 @@
     <string name="title_activity_edit_image">EditImage</string>
     <string name="title_activity_character_list">characterList</string>
     <string name="img">img</string>
+    <string name="swipe_right_to_delete_false_character_change_the_character_if_it_is_wrong">Swipe right to delete false character. Change the character if it is wrong.</string>
+    <string name="title_activity_show_results">ShowResults</string>
 
 </resources>
