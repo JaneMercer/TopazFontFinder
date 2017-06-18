@@ -22,7 +22,9 @@
         <activity
             android:name=".characterList"
             android:label="@string/title_activity_character_list"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar">
+
+    </activity>
         <activity android:name=".LoadingAct" />
         <activity
             android:name=".ShowResults"

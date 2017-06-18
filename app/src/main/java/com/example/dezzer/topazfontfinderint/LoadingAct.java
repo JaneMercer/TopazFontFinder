@@ -14,7 +14,7 @@ public class LoadingAct extends AppCompatActivity {
     }
 
     public void go_to_actv ( View view) {
-        Intent intent = new Intent(this, LoadingAct.class);
+        Intent intent = new Intent(this, ShowResults.class);
         startActivity(intent);
     }
 }

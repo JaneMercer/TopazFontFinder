@@ -51,7 +51,8 @@
 
         app:fabSize="normal"
         app:srcCompat="@drawable/next"
-        app:backgroundTint="@android:color/holo_blue_dark" />
+        app:backgroundTint="@android:color/holo_blue_dark"
+        android:onClick="go_to_actv" />
 
     <include layout="@layout/content_character_list"
         android:layout_height="match_parent"
