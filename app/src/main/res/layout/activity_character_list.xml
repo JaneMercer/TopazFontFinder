@@ -54,11 +54,6 @@
         app:backgroundTint="@android:color/holo_blue_dark"
         android:onClick="go_to_actv" />
 
-    <include layout="@layout/content_character_list"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:layout_marginTop="285dp" />
-
     <TextView
         android:text="@string/swipe_right_to_delete_false_character_change_the_character_if_it_is_wrong"
 
@@ -69,6 +64,11 @@
         android:textColor="@android:color/holo_blue_dark"
         android:textSize="22sp"
         android:textAlignment="center" />
+
+    <include layout="@layout/content_character_list"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_marginTop="285dp" />
 
 
 </android.support.design.widget.CoordinatorLayout>

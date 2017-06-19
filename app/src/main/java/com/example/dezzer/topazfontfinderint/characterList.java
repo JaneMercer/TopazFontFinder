@@ -19,14 +19,6 @@ public class characterList extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-     /*   FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        }); */
     }
     public void go_to_actv ( View view) {
         Intent intent = new Intent(this, LoadingAct.class);

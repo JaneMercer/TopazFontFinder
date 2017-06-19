@@ -22,7 +22,22 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_load_image"
-        android:layout_height="299dp" />
+
+    <ViewFlipper
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="40dp"
+        android:id="@+id/flipper1">
+
+        <include layout="@layout/content_load_image"
+            android:layout_height="299dp"
+            android:id="@+id/include1"
+            android:visibility="visible"/>
+
+        <include layout="@layout/activity_edit_image"
+            android:layout_height="299dp"
+            android:id="@+id/include2"
+            android:visibility="gone"/>
+    </ViewFlipper>
 
 </android.support.design.widget.CoordinatorLayout>

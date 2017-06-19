@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.dezzer.topazfontfinderint.EditImage"
+    tools:context="com.example.dezzer.topazfontfinderint.LoadImage"
     android:background="@android:color/background_dark">
 
 
@@ -22,13 +22,13 @@
         android:layout_alignBottom="@+id/ok"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:onClick="cancel_btn" />
+        android:onClick="cancelBtn"/>
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
         app:srcCompat="@drawable/edit_image"
-        android:id="@+id/imageView2"
+        android:id="@+id/imgView"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -41,11 +41,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/ok"
-        android:layout_below="@+id/imageView2"
+        android:layout_below="@+id/imgView"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="38dp"
-        android:onClick="go_to_actv" />
+        android:onClick="go_to_actv"/>
 
     <TextView
         android:text="Crop the image"
