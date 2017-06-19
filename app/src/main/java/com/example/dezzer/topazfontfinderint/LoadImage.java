@@ -9,8 +9,25 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.util.Log;
+
+import org.opencv.android.OpenCVLoader;
 
 public class LoadImage extends AppCompatActivity {
+
+
+    private static final String TAG = "LoadImg";
+
+    static{
+        if(!OpenCVLoader.initDebug()){
+            Log.d(TAG,"=======================OpenCV not loaded");
+        }
+        else{
+
+            Log.d(TAG,"=========================OpenCV  loaded");
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
