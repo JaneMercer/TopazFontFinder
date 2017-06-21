@@ -144,18 +144,19 @@ public class LoadImage extends AppCompatActivity {
             Mat blurImage = new Mat();
             Mat thresImage = new Mat();
             Mat binImage = new Mat();
+            Mat[] character_array = new Mat[10];
             Bitmap temp = null;
 
             Utils.bitmapToMat(bmp32, sImage);
 
             Imgproc.cvtColor(sImage, grayImage, Imgproc.COLOR_BGR2GRAY); //градации серого
-             Imgproc.GaussianBlur(grayImage,blurImage,new Size(3, 3),0); //размытие
-
+            Imgproc.GaussianBlur(grayImage,blurImage,new Size(3, 3),0); //размытие
             Imgproc.adaptiveThreshold(blurImage, thresImage, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 99, 4);
-            List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-            Mat hierarchy = new Mat();
 
             Imgproc.Canny(thresImage, binImage, 10, 100, 3, true); //контур
+
+            List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+            Mat hierarchy = new Mat();
             //----------------------------
             Imgproc.findContours(binImage, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
@@ -182,15 +183,28 @@ public class LoadImage extends AppCompatActivity {
                 // draw enclosing rectangle (all same color, but you could use variable i to make them unique)
                 Imgproc.rectangle(binImage, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(255, 0, 0), 3);
 
+              //  Imgproc.rectangle(sImage, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(255, 0, 0), 1);
+
+
+                if(i==1)
+                {
+                    character_array[i] = binImage.submat(rect);
+                    temp = Bitmap.createBitmap(character_array[i].cols(), character_array[i].rows(), Bitmap.Config.ARGB_8888);
+                       Utils.matToBitmap(character_array[i], temp);
+
+                        ImageView iv = (ImageView) findViewById(R.id.imgView);
+                       iv.setImageBitmap(temp);
+                }
+
             }
             approxCurve.release();
 
             //debug mode-------------------------------
-            temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(binImage, temp);
+       //     temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
+         //   Utils.matToBitmap(binImage, temp);
 
-            ImageView iv = (ImageView) findViewById(R.id.imgView);
-            iv.setImageBitmap(temp);
+       //     ImageView iv = (ImageView) findViewById(R.id.imgView);
+         //   iv.setImageBitmap(temp);
             //----------------------------
             //end of OpenCV image preparation**********************************************
             sImage.release();
