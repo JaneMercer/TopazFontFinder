@@ -29,11 +29,11 @@ public class LoadImage extends AppCompatActivity {
     private static int RESULT_LOAD_IMAGE = 1;
     private static final int MY_PERM_REQ_READ = 101;
 
-    private static final int MY_PERM_REQ_WRITE = 102;
+    private static final int MY_PERM_REQ_WRITE = 102; //use for permission request
 
     private static final String TAG = "LoadImg";
 
-    static{
+    static{  //checks if openCV is loaded
         if(!OpenCVLoader.initDebug()){
             Log.d(TAG,"=======================OpenCV not loaded");
         }
