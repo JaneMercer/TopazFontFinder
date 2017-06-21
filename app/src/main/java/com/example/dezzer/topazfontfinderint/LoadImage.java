@@ -144,21 +144,19 @@ public class LoadImage extends AppCompatActivity {
             Mat blurImage = new Mat();
             Mat thresImage = new Mat();
             Mat binImage = new Mat();
-            Mat cannyImage = new Mat();
             Bitmap temp = null;
 
             Utils.bitmapToMat(bmp32, sImage);
 
-            Imgproc.cvtColor(sImage, grayImage, Imgproc.COLOR_BGR2GRAY);
-             Imgproc.GaussianBlur(grayImage,blurImage,new Size(3, 3),0);
+            Imgproc.cvtColor(sImage, grayImage, Imgproc.COLOR_BGR2GRAY); //градации серого
+             Imgproc.GaussianBlur(grayImage,blurImage,new Size(3, 3),0); //размытие
 
             Imgproc.adaptiveThreshold(blurImage, thresImage, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 99, 4);
             List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
             Mat hierarchy = new Mat();
 
-
-            Imgproc.Canny(thresImage, binImage, 10, 100, 3, true);
-
+            Imgproc.Canny(thresImage, binImage, 10, 100, 3, true); //контур
+            //----------------------------
             Imgproc.findContours(binImage, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
             hierarchy.release();
