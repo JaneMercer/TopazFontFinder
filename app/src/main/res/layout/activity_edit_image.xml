@@ -47,11 +47,11 @@
         android:layout_marginTop="38dp"
         android:onClick="go_to_actv"/>
 
-    <TextView
+    <Button
         android:text="Crop the image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView2"
+        android:id="@+id/crop"
         android:textSize="20sp"
         android:background="@color/colorPrimaryDark"
         android:textColor="@android:color/holo_blue_dark"
