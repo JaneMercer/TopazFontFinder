@@ -67,7 +67,7 @@ public class LoadImage extends AppCompatActivity {
     private Rect[] okRects = new Rect[rectCOUNT];//массив прямоугольников
 
 
-    public Bitmap[] charactersBit = new Bitmap[10];
+    public Bitmap[] charactersBit = new Bitmap[rectCOUNT];
 
     private static final String TAG = "LoadImg";
 
@@ -179,6 +179,7 @@ public class LoadImage extends AppCompatActivity {
             Mat thresImage = new Mat();
             Mat binImage = new Mat();
             Bitmap temp = null;
+            Bitmap temp2 = null;
 
             Utils.bitmapToMat(bmp32, sImage);
 
@@ -224,29 +225,32 @@ public class LoadImage extends AppCompatActivity {
                 // draw enclosing rectangle (all same color, but you could use variable i to make them unique)
                 if (okRects[i] != null) {
                     Imgproc.rectangle(binImage, new Point(okRects[i].x, okRects[i].y), new Point(okRects[i].x + okRects[i].width, okRects[i].y + okRects[i].height), new Scalar(255, 0, 0), 2);
-/*
-                //PUTS 1 RECTANGLE IMAGE INTO BITMAP ARRAY charactersBit //fix this
-                if(i==0)
-                {
-                    characters[i] = binImage.submat(okRects[i]);
+
+                //PUTS  RECTANGLE IMAGE INTO BITMAP ARRAY charactersBit //fix this
+                    characters[i] = sImage.submat(okRects[i]);
                     charactersBit[i] = Bitmap.createBitmap(characters[i].cols(), characters[i].rows(), Bitmap.Config.ARGB_8888);
                     Utils.matToBitmap(characters[i], charactersBit[i]);
 
-                }*/
+
                 }
             }
             approxCurve.release();
 
             //debug mode-------------------------------
             //UNCOMMENT THIS FOR REGULAR IMAGE OUTPUT
-            temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
+         temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(binImage, temp);
 
             ImageView iv = (ImageView) findViewById(R.id.imgView);
             iv.setImageBitmap(temp);
 
-            //   ImageView iv = (ImageView) findViewById(R.id.characterImg);
-            //        iv.setImageBitmap(charactersBit[0]);  //ERROR  charactersBit[1]=null WHY?
+            temp2 = Bitmap.createBitmap(sImage.cols(), sImage.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(sImage, temp2);
+
+            ImageView iv3 = (ImageView) findViewById(R.id.imageView3);
+            iv3.setImageBitmap(temp2);
+
+
 
             //----------------------------
             //end of OpenCV image preparation**********************************************
@@ -328,13 +332,18 @@ public class LoadImage extends AppCompatActivity {
 
         @NonNull
         @Override
-        public View getView(int i, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, ViewGroup parent) {
             //чи є view для роботи над ним
             View itemView = convertView;
             if (itemView == null) {
                 itemView = getLayoutInflater().inflate(R.layout.content_character_list, parent, false);
             }
+
+            Bitmap currentChar = charactersBit[position];
             //зображення
+            if(charactersBit[position]!=null)
+            {  ImageView ivv = (ImageView) itemView.findViewById(R.id.characterImg);
+                ivv.setImageBitmap(charactersBit[position]); } //ERROR  charactersBit[1]=null WHY?
       /*      ImageView iv = (ImageView) findViewById(R.id.characterImg);
                     iv.setImageBitmap(charactersBit[i]);*/
 
