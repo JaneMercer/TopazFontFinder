@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -21,8 +22,11 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
@@ -41,31 +45,38 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import  org.opencv.photo.Photo;
+import org.opencv.photo.Photo;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 
-
 import static org.opencv.core.CvType.CV_8UC3;
 
 public class LoadImage extends AppCompatActivity {
 
-  //  private static int RESULT_LOAD_IMAGE = 1;
-  final int PIC_CROP = 1;
+    //  private static int RESULT_LOAD_IMAGE = 1;
+    final int PIC_CROP = 1;
     private static final int MY_PERM_REQ_READ = 101;
     private static final int MY_PERM_REQ_WRITE = 102;
+
+    private static final int rectCOUNT = 20; //МАКС КОЛИЧЕСТВО ПРЯМОУГОЛЬНИКОВ
+    private static final double minAREA = 700.0; //РАЗМЕР ПРЯМОУГОЛЬНИКОВ
+    private Mat[] characters = new Mat[rectCOUNT]; //картинки из прямоугольников
+    private Rect[] okRects = new Rect[rectCOUNT];//массив прямоугольников
+
+
+    public Bitmap[] charactersBit = new Bitmap[10];
+
     private static final String TAG = "LoadImg";
 
-    static{
-        if(!OpenCVLoader.initDebug()){
-            Log.d(TAG,"=======================OpenCV not loaded");
-        }
-        else{
+    static {
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "=======================OpenCV not loaded");
+        } else {
 
-            Log.d(TAG,"=========================OpenCV  loaded");
+            Log.d(TAG, "=========================OpenCV  loaded");
         }
     }
 
@@ -76,7 +87,6 @@ public class LoadImage extends AppCompatActivity {
         setContentView(R.layout.activity_load_image);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
 
 
         Button buttonLoadImage = (Button) findViewById(R.id.addImg);
@@ -99,19 +109,43 @@ public class LoadImage extends AppCompatActivity {
 
     }
 
+    //-----------------------------------------------------------------------------
+
     @TargetApi(23)
-    public void permissionCheck()
-    {
+    public void permissionCheck() {
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE);
 
-        if( permissionCheck != PackageManager.PERMISSION_GRANTED)
-        {
-            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERM_REQ_READ);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERM_REQ_READ);
         }
     }
 
+    //-----------------------------------------------------------------------------
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_load_image, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    //-----------------------------------------------------------------------------
+    //---------------------------------Image Processing---------------------
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -144,13 +178,12 @@ public class LoadImage extends AppCompatActivity {
             Mat blurImage = new Mat();
             Mat thresImage = new Mat();
             Mat binImage = new Mat();
-            Mat[] character_array = new Mat[10];
             Bitmap temp = null;
 
             Utils.bitmapToMat(bmp32, sImage);
 
             Imgproc.cvtColor(sImage, grayImage, Imgproc.COLOR_BGR2GRAY); //градации серого
-            Imgproc.GaussianBlur(grayImage,blurImage,new Size(3, 3),0); //размытие
+            Imgproc.GaussianBlur(grayImage, blurImage, new Size(3, 3), 0); //размытие
             Imgproc.adaptiveThreshold(blurImage, thresImage, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 99, 4);
 
             Imgproc.Canny(thresImage, binImage, 10, 100, 3, true); //контур
@@ -163,11 +196,12 @@ public class LoadImage extends AppCompatActivity {
             hierarchy.release();
             Imgproc.drawContours(binImage, contours, -1, new Scalar(255, 255, 255));//, 2, 8, hierarchy, 0, new Point());
 
-
             MatOfPoint2f approxCurve = new MatOfPoint2f();
 
+            int j = 0;
+            int tempj = 0;
             //For each contour found
-            for (int i = 0; i < contours.size(); i++) {
+            for (int i = 0; i < contours.size() && j < rectCOUNT; i++) {
                 //Convert contours(i) from MatOfPoint to MatOfPoint2f
                 MatOfPoint2f contour2f = new MatOfPoint2f(contours.get(i).toArray());
                 //Processing on mMOP2f1 which is in type MatOfPoint2f
@@ -180,90 +214,155 @@ public class LoadImage extends AppCompatActivity {
                 // Get bounding rect of contour
                 Rect rect = Imgproc.boundingRect(points);
 
+                tempj = isright(rect, j);
+                j = tempj;
+
+            }
+
+//DRAWS ONLY RIGHT RECTANGLES
+            for (int i = 0; i < rectCOUNT; i++) {
                 // draw enclosing rectangle (all same color, but you could use variable i to make them unique)
-                Imgproc.rectangle(binImage, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(255, 0, 0), 3);
-
-              //  Imgproc.rectangle(sImage, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(255, 0, 0), 1);
-
-
-                if(i==1)
+                if (okRects[i] != null) {
+                    Imgproc.rectangle(binImage, new Point(okRects[i].x, okRects[i].y), new Point(okRects[i].x + okRects[i].width, okRects[i].y + okRects[i].height), new Scalar(255, 0, 0), 2);
+/*
+                //PUTS 1 RECTANGLE IMAGE INTO BITMAP ARRAY charactersBit //fix this
+                if(i==0)
                 {
-                    character_array[i] = binImage.submat(rect);
-                    temp = Bitmap.createBitmap(character_array[i].cols(), character_array[i].rows(), Bitmap.Config.ARGB_8888);
-                       Utils.matToBitmap(character_array[i], temp);
+                    characters[i] = binImage.submat(okRects[i]);
+                    charactersBit[i] = Bitmap.createBitmap(characters[i].cols(), characters[i].rows(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(characters[i], charactersBit[i]);
 
-                        ImageView iv = (ImageView) findViewById(R.id.imgView);
-                       iv.setImageBitmap(temp);
+                }*/
                 }
-
             }
             approxCurve.release();
 
             //debug mode-------------------------------
-       //     temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
-         //   Utils.matToBitmap(binImage, temp);
+            //UNCOMMENT THIS FOR REGULAR IMAGE OUTPUT
+            temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(binImage, temp);
 
-       //     ImageView iv = (ImageView) findViewById(R.id.imgView);
-         //   iv.setImageBitmap(temp);
+            ImageView iv = (ImageView) findViewById(R.id.imgView);
+            iv.setImageBitmap(temp);
+
+            //   ImageView iv = (ImageView) findViewById(R.id.characterImg);
+            //        iv.setImageBitmap(charactersBit[0]);  //ERROR  charactersBit[1]=null WHY?
+
             //----------------------------
             //end of OpenCV image preparation**********************************************
             sImage.release();
             grayImage.release();
             blurImage.release();
-            binImage.release();
+            //   binImage.release();
         }
     }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_load_image, menu);
-        return true;
+
+    //-----------------------------------------------------------------------------
+    private int isright(Rect rect, int j) { //Is rectangle right (not in another rectangle or does not include existing one)
+        double area = 0;
+        boolean isx1;
+        boolean isx2;
+        boolean isx3;
+
+        boolean isy1;
+        boolean isy2;
+        boolean isy3;
+        int i = 0;
+        area = rect.area();
+        if (area > minAREA) //rectangle is ok size
+            {
+                for ( i = 0; i < j; i++) {
+
+                    isx1 = rect.x >= okRects[i].x;
+                    isx2 = rect.x <= okRects[i].x+okRects[i].width;
+                    isx3 = rect.x+rect.width <= okRects[i].x+okRects[i].width;
+                 //   isx4 = rect.x+rect.width <= okRects[i].x;
+
+                    isy1 = rect.y >= okRects[i].y;
+                    isy2 = rect.y <= okRects[i].y+okRects[i].height;
+                    isy3 = rect.y+rect.height <=okRects[i].y+okRects[i].height;
+
+                    if(isx1 && isx2 && isx3 && isy1 && isy2 && isy3) //this rec is inside existing one (exit func)
+                    { return j;}
+                       else if (!isx1 && !isx3 && !isy1 && !isy3) {okRects[i] = rect;return j;}//this rec is over existing one (change existing to this)
+                }
+
+                okRects[j] = rect;
+                j++;
+
+            }
+        return j;
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    private Bitmap JPGtoRGB888(Bitmap img){
+    //-----------------------------------------------------------------------------
+    private Bitmap JPGtoRGB888(Bitmap img) {
         Bitmap result = null;
 
         int numPixels = img.getWidth() * img.getHeight();
         int[] pixels = new int[numPixels];
 
 //        get jpeg pixels, each int is the color value of one pixel
-        img.getPixels(pixels,0,img.getWidth(),0,0,img.getWidth(),img.getHeight());
+        img.getPixels(pixels, 0, img.getWidth(), 0, 0, img.getWidth(), img.getHeight());
 
 //        create bitmap in appropriate format
-        result = Bitmap.createBitmap(img.getWidth(),img.getHeight(), Bitmap.Config.ARGB_8888);
+        result = Bitmap.createBitmap(img.getWidth(), img.getHeight(), Bitmap.Config.ARGB_8888);
 
 //        Set RGB pixels
         result.setPixels(pixels, 0, result.getWidth(), 0, 0, result.getWidth(), result.getHeight());
 
         return result;
     }
+    //-----------------------------------------------------------------------------
+    //---------------------------------Character List Creation--------------------- DOES NOT WORK
+
+    private void pupulateListView() {
+        ArrayAdapter<Mat> adapter = new MyListAdapter();
+        ListView list = (ListView) findViewById(R.id.charListView);
+        list.setAdapter(adapter);
+    }
+
+    private class MyListAdapter extends ArrayAdapter<Mat> //елементи списку
+    {
+        public MyListAdapter() {
+            super(LoadImage.this, R.layout.content_character_list, characters);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int i, View convertView, ViewGroup parent) {
+            //чи є view для роботи над ним
+            View itemView = convertView;
+            if (itemView == null) {
+                itemView = getLayoutInflater().inflate(R.layout.content_character_list, parent, false);
+            }
+            //зображення
+      /*      ImageView iv = (ImageView) findViewById(R.id.characterImg);
+                    iv.setImageBitmap(charactersBit[i]);*/
+
+//show recognized character
+            //      TextView recognizedText = (TextView) itemView.findViewById(R.id.recognizedChar);
+            //    recognizedText.setText(currentChar.getName());
+
+
+            return itemView;
+        }
+
+
+    }
 
 
     //-----------------------------------------------------------------------------
-    public void cancelBtn ( View view) {
+    public void cancelBtn(View view) {
         findViewById(R.id.include2).setVisibility(View.GONE);
         findViewById(R.id.include1).setVisibility(View.VISIBLE);
     }
 
-    public void go_to_actv ( View view) {
-        Intent intent = new Intent(this, characterList.class);
-        startActivity(intent);
+    public void go_to_actv(View view) { //Go to charactyer list (Bugged)
+
+        findViewById(R.id.include1).setVisibility(View.GONE);
+        findViewById(R.id.include2).setVisibility(View.GONE);
+        findViewById(R.id.include3).setVisibility(View.VISIBLE);
+
+        pupulateListView();
     }
 
 

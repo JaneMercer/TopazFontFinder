@@ -5,22 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.example.dezzer.topazfontfinderint.characterList"
+    tools:context="com.example.dezzer.topazfontfinderint.LoadImage"
     android:background="@android:color/background_dark">
 
-    <android.support.design.widget.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-    </android.support.design.widget.AppBarLayout>
 
     <ImageView
         android:layout_width="wrap_content"
@@ -32,15 +19,6 @@
         android:elevation="1dp"
         tools:ignore="UnusedAttribute" />
 
-    <!--
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/productsListView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="245dp" /> -->
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -65,9 +43,13 @@
         android:textSize="22sp"
         android:textAlignment="center" />
 
-    <include layout="@layout/content_character_list"
-        android:layout_height="match_parent"
+    <ListView
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/charListView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_marginTop="285dp" />
 
 

@@ -48,7 +48,7 @@
         android:onClick="go_to_actv"/>
 
     <Button
-        android:text="Crop the image"
+        android:text="Editted image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/crop"

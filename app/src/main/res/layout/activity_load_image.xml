@@ -30,14 +30,24 @@
         android:id="@+id/flipper1">
 
         <include layout="@layout/content_load_image"
-            android:layout_height="299dp"
+            android:layout_height="match_parent"
+
+            android:layout_width="match_parent"
             android:id="@+id/include1"
             android:visibility="visible"/>
 
         <include layout="@layout/activity_edit_image"
-            android:layout_height="299dp"
+            android:layout_height="match_parent"
+
+            android:layout_width="match_parent"
             android:id="@+id/include2"
             android:visibility="gone"/>
+
+        <include layout="@layout/activity_character_list"
+            android:layout_height="match_parent"
+            android:id="@+id/include3"
+            android:visibility="gone"
+            android:layout_width="match_parent" />
     </ViewFlipper>
 
 </android.support.design.widget.CoordinatorLayout>
