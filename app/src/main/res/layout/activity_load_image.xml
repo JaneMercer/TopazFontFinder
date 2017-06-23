@@ -4,15 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/background_dark"
     android:fitsSystemWindows="true"
-    tools:context="com.example.dezzer.topazfontfinderint.LoadImage"
-    android:background="@android:color/background_dark">
+    tools:context="com.example.dezzer.topazfontfinderint.LoadImage">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        android:background="#141414">
+        android:background="#141414"
+        android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -24,30 +24,33 @@
 
 
     <ViewFlipper
+        android:id="@+id/flipper1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="40dp"
-        android:id="@+id/flipper1">
+        android:layout_marginTop="40dp">
 
-        <include layout="@layout/content_load_image"
-            android:layout_height="match_parent"
-
-            android:layout_width="match_parent"
+        <include
             android:id="@+id/include1"
-            android:visibility="visible"/>
-
-        <include layout="@layout/activity_edit_image"
-            android:layout_height="match_parent"
+            layout="@layout/content_load_image"
 
             android:layout_width="match_parent"
-            android:id="@+id/include2"
-            android:visibility="gone"/>
-
-        <include layout="@layout/activity_character_list"
             android:layout_height="match_parent"
+            android:visibility="visible" />
+
+        <include
+            android:id="@+id/include2"
+            layout="@layout/activity_edit_image"
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <include
             android:id="@+id/include3"
-            android:visibility="gone"
-            android:layout_width="match_parent" />
+            layout="@layout/activity_character_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
     </ViewFlipper>
 
 </android.support.design.widget.CoordinatorLayout>

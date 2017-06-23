@@ -65,9 +65,9 @@ public class LoadImage extends AppCompatActivity {
     private static final double minAREA = 700.0; //РАЗМЕР ПРЯМОУГОЛЬНИКОВ
     private Mat[] characters = new Mat[rectCOUNT]; //картинки из прямоугольников
     private Rect[] okRects = new Rect[rectCOUNT];//массив прямоугольников
+    private List<Bitmap> charactersBit = new ArrayList<Bitmap>();
 
-
-    public Bitmap[] charactersBit = new Bitmap[rectCOUNT];
+    //  public Bitmap[] charactersBit = new Bitmap[rectCOUNT];
 
     private static final String TAG = "LoadImg";
 
@@ -173,16 +173,24 @@ public class LoadImage extends AppCompatActivity {
 
             //OpenCV image preparation**********************************************
             Bitmap bmp32 = JPGtoRGB888(BitmapFactory.decodeFile(picturePath));
+
             Mat sImage = new Mat();
             Mat grayImage = new Mat();
             Mat blurImage = new Mat();
             Mat thresImage = new Mat();
             Mat binImage = new Mat();
+
             Bitmap temp = null;
             Bitmap temp2 = null;
 
             Utils.bitmapToMat(bmp32, sImage);
-
+            //----------------------------RESIZING LOADED IMAGE//----------------------------
+            Log.d(TAG, "=======================W" + Integer.toString(sImage.width()));
+            while (sImage.width() > 700 && sImage.height() > 700) {
+                Imgproc.resize(sImage, sImage, new Size(), 0.6, 0.6, Imgproc.INTER_AREA);
+                Log.d(TAG, "=======================W" + Integer.toString(sImage.width()));
+            }
+            //----------------------------
             Imgproc.cvtColor(sImage, grayImage, Imgproc.COLOR_BGR2GRAY); //градации серого
             Imgproc.GaussianBlur(grayImage, blurImage, new Size(3, 3), 0); //размытие
             Imgproc.adaptiveThreshold(blurImage, thresImage, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 99, 4);
@@ -192,7 +200,7 @@ public class LoadImage extends AppCompatActivity {
             List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
             Mat hierarchy = new Mat();
             //----------------------------
-            Imgproc.findContours(binImage, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
+            Imgproc.findContours(binImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
             hierarchy.release();
             Imgproc.drawContours(binImage, contours, -1, new Scalar(255, 255, 255));//, 2, 8, hierarchy, 0, new Point());
@@ -220,17 +228,23 @@ public class LoadImage extends AppCompatActivity {
 
             }
 
+            Log.d(TAG, "=======================Rect:  " + Integer.toString(okRects.length));
+            if (okRects[9] == null)
+                Log.d(TAG, "=======================9  null");
 //DRAWS ONLY RIGHT RECTANGLES
             for (int i = 0; i < rectCOUNT; i++) {
                 // draw enclosing rectangle (all same color, but you could use variable i to make them unique)
                 if (okRects[i] != null) {
                     Imgproc.rectangle(binImage, new Point(okRects[i].x, okRects[i].y), new Point(okRects[i].x + okRects[i].width, okRects[i].y + okRects[i].height), new Scalar(255, 0, 0), 2);
 
-                //PUTS  RECTANGLE IMAGE INTO BITMAP ARRAY charactersBit //fix this
+                    //PUTS  RECTANGLE IMAGE INTO BITMAP LIST charactersBit
                     characters[i] = sImage.submat(okRects[i]);
-                    charactersBit[i] = Bitmap.createBitmap(characters[i].cols(), characters[i].rows(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(characters[i], charactersBit[i]);
 
+                    Log.d(TAG, "=======================HERE");
+                    charactersBit.add(i, Bitmap.createBitmap(characters[i].cols(), characters[i].rows(), Bitmap.Config.ARGB_8888));
+                    Utils.matToBitmap(characters[i], charactersBit.get(i));
+
+                    Log.d(TAG, "============InARRAY===========" + i);
 
                 }
             }
@@ -238,7 +252,7 @@ public class LoadImage extends AppCompatActivity {
 
             //debug mode-------------------------------
             //UNCOMMENT THIS FOR REGULAR IMAGE OUTPUT
-         temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
+            temp = Bitmap.createBitmap(binImage.cols(), binImage.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(binImage, temp);
 
             ImageView iv = (ImageView) findViewById(R.id.imgView);
@@ -249,7 +263,6 @@ public class LoadImage extends AppCompatActivity {
 
             ImageView iv3 = (ImageView) findViewById(R.id.imageView3);
             iv3.setImageBitmap(temp2);
-
 
 
             //----------------------------
@@ -264,39 +277,16 @@ public class LoadImage extends AppCompatActivity {
     //-----------------------------------------------------------------------------
     private int isright(Rect rect, int j) { //Is rectangle right (not in another rectangle or does not include existing one)
         double area = 0;
-        boolean isx1;
-        boolean isx2;
-        boolean isx3;
-
-        boolean isy1;
-        boolean isy2;
-        boolean isy3;
         int i = 0;
         area = rect.area();
         if (area > minAREA) //rectangle is ok size
-            {
-                for ( i = 0; i < j; i++) {
-
-                    isx1 = rect.x >= okRects[i].x;
-                    isx2 = rect.x <= okRects[i].x+okRects[i].width;
-                    isx3 = rect.x+rect.width <= okRects[i].x+okRects[i].width;
-                 //   isx4 = rect.x+rect.width <= okRects[i].x;
-
-                    isy1 = rect.y >= okRects[i].y;
-                    isy2 = rect.y <= okRects[i].y+okRects[i].height;
-                    isy3 = rect.y+rect.height <=okRects[i].y+okRects[i].height;
-
-                    if(isx1 && isx2 && isx3 && isy1 && isy2 && isy3) //this rec is inside existing one (exit func)
-                    { return j;}
-                       else if (!isx1 && !isx3 && !isy1 && !isy3) {okRects[i] = rect;return j;}//this rec is over existing one (change existing to this)
-                }
-
-                okRects[j] = rect;
-                j++;
-
-            }
+        {
+            okRects[j] = rect;
+            j++;
+        }
         return j;
     }
+
     //-----------------------------------------------------------------------------
     private Bitmap JPGtoRGB888(Bitmap img) {
         Bitmap result = null;
@@ -316,18 +306,20 @@ public class LoadImage extends AppCompatActivity {
         return result;
     }
     //-----------------------------------------------------------------------------
-    //---------------------------------Character List Creation--------------------- DOES NOT WORK
+    //---------------------------------Character List Creation---------------------
 
     private void pupulateListView() {
-        ArrayAdapter<Mat> adapter = new MyListAdapter();
+        ArrayAdapter<Bitmap> adapter = new MyListAdapter();
         ListView list = (ListView) findViewById(R.id.charListView);
         list.setAdapter(adapter);
     }
 
-    private class MyListAdapter extends ArrayAdapter<Mat> //елементи списку
+    private class MyListAdapter extends ArrayAdapter<Bitmap> //елементи списку
     {
+
+
         public MyListAdapter() {
-            super(LoadImage.this, R.layout.content_character_list, characters);
+            super(LoadImage.this, R.layout.content_character_list, charactersBit);
         }
 
         @NonNull
@@ -339,13 +331,13 @@ public class LoadImage extends AppCompatActivity {
                 itemView = getLayoutInflater().inflate(R.layout.content_character_list, parent, false);
             }
 
-            Bitmap currentChar = charactersBit[position];
             //зображення
-            if(charactersBit[position]!=null)
-            {  ImageView ivv = (ImageView) itemView.findViewById(R.id.characterImg);
-                ivv.setImageBitmap(charactersBit[position]); } //ERROR  charactersBit[1]=null WHY?
-      /*      ImageView iv = (ImageView) findViewById(R.id.characterImg);
-                    iv.setImageBitmap(charactersBit[i]);*/
+            if (charactersBit.get(position) != null) {
+                ImageView ivv = (ImageView) itemView.findViewById(R.id.characterImg);
+                ivv.setImageBitmap(charactersBit.get(position));
+
+                Log.d(TAG, "============SET===========" + position);
+            }
 
 //show recognized character
             //      TextView recognizedText = (TextView) itemView.findViewById(R.id.recognizedChar);
