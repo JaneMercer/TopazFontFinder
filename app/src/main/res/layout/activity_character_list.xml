@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:context="com.example.dezzer.topazfontfinderint.LoadImage"
-    android:background="@android:color/background_dark">
+    android:elevation="1dp">
 
 
     <ImageView
@@ -16,7 +16,9 @@
         android:contentDescription="@string/img"
         android:elevation="1dp"
         tools:ignore="UnusedAttribute"
-        android:layout_height="100dp" />
+        android:layout_height="100dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginEnd="60dp" />
 
 
     <android.support.design.widget.FloatingActionButton

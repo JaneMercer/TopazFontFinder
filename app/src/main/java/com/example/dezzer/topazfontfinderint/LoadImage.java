@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -65,7 +66,8 @@ public class LoadImage extends AppCompatActivity {
     private static final double minAREA = 700.0; //РАЗМЕР ПРЯМОУГОЛЬНИКОВ
     private Mat[] characters = new Mat[rectCOUNT]; //картинки из прямоугольников
     private Rect[] okRects = new Rect[rectCOUNT];//массив прямоугольников
-    private List<Bitmap> charactersBit = new ArrayList<Bitmap>();
+    private List<Bitmap> charactersBit = new ArrayList<Bitmap>(); //list битмапов из картинок
+    private List<String> recognizedCharList = new ArrayList<String>();//list соответствующих картинкам букв
 
     //  public Bitmap[] charactersBit = new Bitmap[rectCOUNT];
 
@@ -270,7 +272,7 @@ public class LoadImage extends AppCompatActivity {
             sImage.release();
             grayImage.release();
             blurImage.release();
-            //   binImage.release();
+            binImage.release();
         }
     }
 
@@ -309,8 +311,14 @@ public class LoadImage extends AppCompatActivity {
     //---------------------------------Character List Creation---------------------
 
     private void pupulateListView() {
+
         ArrayAdapter<Bitmap> adapter = new MyListAdapter();
         ListView list = (ListView) findViewById(R.id.charListView);
+
+        list.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+        list.setStackFromBottom(true);
+        list.setItemsCanFocus(true);
+
         list.setAdapter(adapter);
     }
 
@@ -340,14 +348,16 @@ public class LoadImage extends AppCompatActivity {
             }
 
 //show recognized character
-            //      TextView recognizedText = (TextView) itemView.findViewById(R.id.recognizedChar);
-            //    recognizedText.setText(currentChar.getName());
+       /*     EditText recognizedText = (EditText) itemView.findViewById(R.id.recognizedChar);
+            //     recognizedText.setText(rec.getName());
+            if (recognizedText != null) {
+                // recognizedCharList.add(position,recognizedText.getText().toString());}
+                recognizedText.setText();
 
+            }*/
 
             return itemView;
         }
-
-
     }
 
 

@@ -43,6 +43,8 @@
             android:maxLength="1"
             android:minHeight="185dp"
 
+            android:focusable="true"
+
             android:saveEnabled="true"
             android:selectAllOnFocus="false"
             android:text=""
