@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@android:color/background_dark"
     android:fitsSystemWindows="true"
-
     tools:context="com.example.dezzer.topazfontfinderint.LoadImage">
 
     <android.support.design.widget.AppBarLayout

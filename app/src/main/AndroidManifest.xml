@@ -14,7 +14,7 @@
             android:name=".LoadImage"
             android:screenOrientation="portrait"
             android:label="@string/app_name"
-            android:windowSoftInputMode="stateHidden|adjustResize"
+            android:windowSoftInputMode="adjustPan|stateUnspecified"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,7 +22,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--<activity android:name=".EditImage" />-->
 
         <activity android:name=".LoadingAct" />
         <activity
