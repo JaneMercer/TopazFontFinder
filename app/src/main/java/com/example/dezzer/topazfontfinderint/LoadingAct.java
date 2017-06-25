@@ -11,6 +11,7 @@ public class LoadingAct extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
+
     }
 
     public void go_to_actv ( View view) {

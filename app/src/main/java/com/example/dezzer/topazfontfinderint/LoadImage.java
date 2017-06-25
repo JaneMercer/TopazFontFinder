@@ -7,25 +7,20 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -61,6 +56,7 @@ import org.opencv.imgproc.Imgproc;
 
 import org.opencv.photo.Photo;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,14 +70,14 @@ public class LoadImage extends AppCompatActivity {
     final int PIC_CROP = 1;
     private static final int MY_PERM_REQ_READ = 101;
     private static final int MY_PERM_REQ_WRITE = 102;
-
-    private static final int DEFAULT_THRESHOLD = 300;
-
-
+    private static final int DEFAULT_THRESHOLD = 350;
     private static final int rectCOUNT = 20; //МАКС КОЛИЧЕСТВО ПРЯМОУГОЛЬНИКОВ
     private static final double minAREA = 700.0; //РАЗМЕР ПРЯМОУГОЛЬНИКОВ
+
     private Mat[] characters = new Mat[rectCOUNT]; //картинки из прямоугольников
     private Rect[] okRects = new Rect[rectCOUNT];//массив прямоугольников
+
+    private List<Mat> charactersMat = new ArrayList<Mat>(); //list mat для сравнения контуров потом
     private List<Bitmap> charactersBit = new ArrayList<Bitmap>(); //list битмапов из картинок
     private List<String> recognizedCharList = new ArrayList<String>();//list соответствующих картинкам букв
 
@@ -109,7 +105,32 @@ public class LoadImage extends AppCompatActivity {
 
         Button buttonLoadImage = (Button) findViewById(R.id.addImg);
 
+        File direct = new File(Environment.getExternalStorageDirectory()+"/TopazFonts");
 
+        if(!direct.exists()) {
+            if(direct.mkdir()); //directory is created;
+        }
+
+        AssetDatabaseOpenHelper adb = new AssetDatabaseOpenHelper(this);
+        SQLiteDatabase db = adb.openDatabase();
+        /*відкрити зображення з бд - тестування*/
+       Cursor c = db.rawQuery("SELECT image FROM fonts WHERE char = ?",  new String[] {"a"});
+        c.moveToFirst(); //для перемещения в цикле есть moveToNext()
+        String temp = Environment.getExternalStorageDirectory() + c.getString(c.getColumnIndex("image"));
+   //    String temp = c.getString(c.getColumnIndex("image"));
+        Log.d("MyApp", "cnt: "+temp);
+        File imgFile = new  File(temp);
+
+
+if(imgFile.exists()){
+
+    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+    ImageView myImage = (ImageView) findViewById(R.id.test);
+
+    myImage.setImageBitmap(myBitmap);
+
+}
         permissionCheck(); //CHECKS FOR THE PERMISSION FOR API 23+
 
         buttonLoadImage.setOnClickListener(new View.OnClickListener() {
@@ -246,22 +267,20 @@ public class LoadImage extends AppCompatActivity {
 
             }
 
-            Log.d(TAG, "=======================Rect:  " + Integer.toString(okRects.length));
-
 //DRAWS ONLY RIGHT RECTANGLES
             for (int i = 0; i < rectCOUNT; i++) {
                 // draw enclosing rectangle (all same color, but you could use variable i to make them unique)
                 if (okRects[i] != null) {
                     Imgproc.rectangle(binImage, new Point(okRects[i].x, okRects[i].y), new Point(okRects[i].x + okRects[i].width, okRects[i].y + okRects[i].height), new Scalar(255, 0, 0), 2);
 
+                    charactersMat.add(i,binImage.submat(okRects[i]));
                     //PUTS  RECTANGLE IMAGE INTO BITMAP LIST charactersBit
                     characters[i] = sImage.submat(okRects[i]);
 
                     charactersBit.add(i, Bitmap.createBitmap(characters[i].cols(), characters[i].rows(), Bitmap.Config.ARGB_8888));
                     Utils.matToBitmap(characters[i], charactersBit.get(i));
-                    recognizedCharList.add(i,null);
+                    recognizedCharList.add(i, null);
 
-                    Log.d(TAG, "============InARRAY===========" + i);
 
                 }
             }
@@ -329,8 +348,6 @@ public class LoadImage extends AppCompatActivity {
 
         ArrayAdapter<Bitmap> adapter = new MyListAdapter();
         ListView list = (ListView) findViewById(R.id.charListView);
-   //     list.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-     //   list.setStackFromBottom(true);
         list.setItemsCanFocus(true);
         list.setAdapter(adapter);
     }
@@ -367,8 +384,10 @@ public class LoadImage extends AppCompatActivity {
 
             holder.ref = position;
 
-            holder.characterImg.setImageBitmap(charactersBit.get(position));
-            holder.recognizedChar.setText(recognizedCharList.get(position));
+            holder.characterImg.setImageBitmap(charactersBit.get(position)); //sets images
+            holder.recognizedChar.setText(recognizedCharList.get(position));//sets characters
+
+            //-----------------------------ENTER CHARACTERS
             holder.recognizedChar.addTextChangedListener(new TextWatcher() {
 
                 @Override
@@ -387,13 +406,12 @@ public class LoadImage extends AppCompatActivity {
                 @Override
                 public void afterTextChanged(Editable arg0) {
                     // TODO Auto-generated method stub
-                    recognizedCharList.set(holder.ref,arg0.toString());
-                    Log.d(TAG, "============Char===========" +holder.ref +recognizedCharList.get(holder.ref));
+                    recognizedCharList.set(holder.ref, arg0.toString());
+                    //   Log.d(TAG, "============Char===========" + holder.ref + recognizedCharList.get(holder.ref));
                 }
             });
 
-
-
+            //-----------------------------DELETE UNWANTED
             convertView.setOnTouchListener(new View.OnTouchListener() {
 
                 int initialX = 0;
@@ -401,28 +419,32 @@ public class LoadImage extends AppCompatActivity {
 
                 @Override
                 public boolean onTouch(final View view, MotionEvent event) {
+
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        //x = (int) event.getX();
                         initialX = (int) event.getX();
-                        view.setPadding(0, 0, 0, 0);
+                        while(initialX == 0)
+                        {view.setPadding(0, initialX, 0, 0); initialX--;}
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+
+
                         int currentX = (int) event.getX();
                         int offset = currentX - initialX;
                         if (Math.abs(offset) > slop) {
                             view.setPadding(offset, 0, 0, 0);
 
-                           if (offset > DEFAULT_THRESHOLD) {
+                            if (offset > DEFAULT_THRESHOLD) {
 
-                               Log.d(TAG, "============DELETED===========");
                                 charactersBit.remove(holder.ref);
-                               recognizedCharList.remove(holder.ref);
-
-                              // convertView.remove(holder.ref);
-                              notifyDataSetChanged();
+                                recognizedCharList.remove(holder.ref);
+                                charactersMat.remove(holder.ref);
+                                notifyDataSetChanged();
 
                             }
                         }
                     } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                         // Animate back if no action was performed.
+
                         ValueAnimator animator = ValueAnimator.ofInt(view.getPaddingLeft(), 0);
                         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                             @Override
@@ -438,6 +460,7 @@ public class LoadImage extends AppCompatActivity {
                 }
 
             });
+            //-----------------------------
 
             return convertView;
 
@@ -454,8 +477,8 @@ public class LoadImage extends AppCompatActivity {
     }
 
 
+    //-----------------------------Navigation buttons------------------------------------------------
 
-    //-----------------------------------------------------------------------------
     public void cancelBtn(View view) {
         findViewById(R.id.include2).setVisibility(View.GONE);
         findViewById(R.id.include1).setVisibility(View.VISIBLE);
