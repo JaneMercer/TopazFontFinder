@@ -1,6 +1,7 @@
 package com.example.dezzer.topazfontfinderint;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -8,7 +9,12 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -17,11 +23,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -61,6 +74,9 @@ public class LoadImage extends AppCompatActivity {
     final int PIC_CROP = 1;
     private static final int MY_PERM_REQ_READ = 101;
     private static final int MY_PERM_REQ_WRITE = 102;
+
+    private static final int DEFAULT_THRESHOLD = 300;
+
 
     private static final int rectCOUNT = 20; //МАКС КОЛИЧЕСТВО ПРЯМОУГОЛЬНИКОВ
     private static final double minAREA = 700.0; //РАЗМЕР ПРЯМОУГОЛЬНИКОВ
@@ -231,8 +247,7 @@ public class LoadImage extends AppCompatActivity {
             }
 
             Log.d(TAG, "=======================Rect:  " + Integer.toString(okRects.length));
-            if (okRects[9] == null)
-                Log.d(TAG, "=======================9  null");
+
 //DRAWS ONLY RIGHT RECTANGLES
             for (int i = 0; i < rectCOUNT; i++) {
                 // draw enclosing rectangle (all same color, but you could use variable i to make them unique)
@@ -242,9 +257,9 @@ public class LoadImage extends AppCompatActivity {
                     //PUTS  RECTANGLE IMAGE INTO BITMAP LIST charactersBit
                     characters[i] = sImage.submat(okRects[i]);
 
-                    Log.d(TAG, "=======================HERE");
                     charactersBit.add(i, Bitmap.createBitmap(characters[i].cols(), characters[i].rows(), Bitmap.Config.ARGB_8888));
                     Utils.matToBitmap(characters[i], charactersBit.get(i));
+                    recognizedCharList.add(i,null);
 
                     Log.d(TAG, "============InARRAY===========" + i);
 
@@ -314,13 +329,12 @@ public class LoadImage extends AppCompatActivity {
 
         ArrayAdapter<Bitmap> adapter = new MyListAdapter();
         ListView list = (ListView) findViewById(R.id.charListView);
-
-        list.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-        list.setStackFromBottom(true);
+   //     list.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+     //   list.setStackFromBottom(true);
         list.setItemsCanFocus(true);
-
         list.setAdapter(adapter);
     }
+
 
     private class MyListAdapter extends ArrayAdapter<Bitmap> //елементи списку
     {
@@ -333,32 +347,112 @@ public class LoadImage extends AppCompatActivity {
         @NonNull
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            //чи є view для роботи над ним
-            View itemView = convertView;
-            if (itemView == null) {
-                itemView = getLayoutInflater().inflate(R.layout.content_character_list, parent, false);
+
+            //ViewHolder holder = null;
+            final ViewHolder holder;
+            if (convertView == null) {
+
+                holder = new ViewHolder();
+                LayoutInflater inflater = LoadImage.this.getLayoutInflater();
+                convertView = inflater.inflate(R.layout.content_character_list, null);
+                holder.characterImg = (ImageView) convertView.findViewById(R.id.characterImg);
+                holder.recognizedChar = (EditText) convertView.findViewById(R.id.recognizedChar);
+
+                convertView.setTag(holder);
+
+            } else {
+
+                holder = (ViewHolder) convertView.getTag();
             }
 
-            //зображення
-            if (charactersBit.get(position) != null) {
-                ImageView ivv = (ImageView) itemView.findViewById(R.id.characterImg);
-                ivv.setImageBitmap(charactersBit.get(position));
+            holder.ref = position;
 
-                Log.d(TAG, "============SET===========" + position);
-            }
+            holder.characterImg.setImageBitmap(charactersBit.get(position));
+            holder.recognizedChar.setText(recognizedCharList.get(position));
+            holder.recognizedChar.addTextChangedListener(new TextWatcher() {
 
-//show recognized character
-       /*     EditText recognizedText = (EditText) itemView.findViewById(R.id.recognizedChar);
-            //     recognizedText.setText(rec.getName());
-            if (recognizedText != null) {
-                // recognizedCharList.add(position,recognizedText.getText().toString());}
-                recognizedText.setText();
+                @Override
+                public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+                    // TODO Auto-generated method stub
 
-            }*/
+                }
 
-            return itemView;
+                @Override
+                public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+                                              int arg3) {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable arg0) {
+                    // TODO Auto-generated method stub
+                    recognizedCharList.set(holder.ref,arg0.toString());
+                    Log.d(TAG, "============Char===========" +holder.ref +recognizedCharList.get(holder.ref));
+                }
+            });
+
+
+
+            convertView.setOnTouchListener(new View.OnTouchListener() {
+
+                int initialX = 0;
+                final float slop = ViewConfiguration.get(LoadImage.this).getScaledTouchSlop();
+
+                @Override
+                public boolean onTouch(final View view, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        initialX = (int) event.getX();
+                        view.setPadding(0, 0, 0, 0);
+                    } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                        int currentX = (int) event.getX();
+                        int offset = currentX - initialX;
+                        if (Math.abs(offset) > slop) {
+                            view.setPadding(offset, 0, 0, 0);
+
+                           if (offset > DEFAULT_THRESHOLD) {
+
+                               Log.d(TAG, "============DELETED===========");
+                                charactersBit.remove(holder.ref);
+                               recognizedCharList.remove(holder.ref);
+
+                              // convertView.remove(holder.ref);
+                              notifyDataSetChanged();
+
+                            }
+                        }
+                    } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                        // Animate back if no action was performed.
+                        ValueAnimator animator = ValueAnimator.ofInt(view.getPaddingLeft(), 0);
+                        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            @Override
+                            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                                view.setPadding((Integer) valueAnimator.getAnimatedValue(), 0, 0, 0);
+                            }
+                        });
+                        animator.setDuration(150);
+                        animator.start();
+                    }
+
+                    return true;
+                }
+
+            });
+
+            return convertView;
+
+
         }
+
+        private class ViewHolder {
+            ImageView characterImg;
+            EditText recognizedChar;
+            int ref;
+        }
+
+
     }
+
 
 
     //-----------------------------------------------------------------------------
